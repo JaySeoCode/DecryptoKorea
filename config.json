@@ -1,0 +1,33 @@
+{
+  "sources": {
+    "coindesk": {
+      "enabled": true,
+      "limit": 5,
+      "description": "CoinDesk - Leading cryptocurrency news site"
+    },
+    "cryptopolitan": {
+      "enabled": true,
+      "limit": 5,
+      "description": "Cryptopolitan - Crypto, AI and Web3 news"
+    },
+    "theblock": {
+      "enabled": true,
+      "limit": 5,
+      "description": "The Block - Crypto, Blockchain, Web3 and DeFi news"
+    }
+  },
+  "scheduler": {
+    "interval_minutes": 30,
+    "enabled": true
+  },
+  "processing": {
+    "max_retries": 3,
+    "retry_delay_seconds": 5,
+    "generate_images": true,
+    "auto_publish": true
+  },
+  "logging": {
+    "level": "INFO",
+    "file": "logs/auto_poster.log"
+  }
+}

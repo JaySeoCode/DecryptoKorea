@@ -1,0 +1,25 @@
+# Render.com 배포 설정 파일
+# DecryptoKorea 자동 뉴스 게시 봇
+
+services:
+  - type: worker
+    name: decryptokorea-bot
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python main.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: WORDPRESS_URL
+        sync: false
+      - key: WORDPRESS_USERNAME
+        sync: false
+      - key: WORDPRESS_APP_PASSWORD
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
