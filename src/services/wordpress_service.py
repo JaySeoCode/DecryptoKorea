@@ -223,7 +223,7 @@ class WordPressService:
             print(f"[ERROR] 태그 생성/조회 실패: {str(e)}")
             return None
 
-    def get_or_create_category(self, category_name: str) -> Optional[int]:
+    def get_or_create_category(self, category_name: str) -> Optional[Dict]:
         """
         카테고리를 가져오거나 생성합니다.
 
@@ -231,7 +231,7 @@ class WordPressService:
             category_name: 카테고리 이름
 
         Returns:
-            카테고리 ID (실패 시 None)
+            카테고리 정보 딕셔너리 {'id': int, 'link': str} (실패 시 None)
         """
         try:
             # 기존 카테고리 검색
@@ -248,7 +248,7 @@ class WordPressService:
             for cat in categories:
                 if cat['name'].lower() == category_name.lower():
                     print(f"[INFO] 기존 카테고리 사용: {category_name} (ID: {cat['id']})")
-                    return cat['id']
+                    return {'id': cat['id'], 'link': cat.get('link', '')}
 
             # 카테고리가 없으면 생성
             response = requests.post(
@@ -260,8 +260,9 @@ class WordPressService:
             response.raise_for_status()
             cat_data = response.json()
             cat_id = cat_data.get('id')
+            cat_link = cat_data.get('link', '')
             print(f"[SUCCESS] 새 카테고리 생성: {category_name} (ID: {cat_id})")
-            return cat_id
+            return {'id': cat_id, 'link': cat_link}
 
         except Exception as e:
             print(f"[ERROR] 카테고리 생성/조회 실패: {str(e)}")
@@ -293,12 +294,14 @@ class WordPressService:
 
         # 카테고리 처리 (소스별 동적 생성)
         category_ids = []
+        category_link = None
         # article에서 source 필드 읽기 (없으면 기본값 coindesk.com)
         source = article.get('source', 'coindesk.com')
         category_name = source  # 소스명을 그대로 카테고리로 사용
-        category_id = self.get_or_create_category(category_name)
-        if category_id:
-            category_ids.append(category_id)
+        category_info = self.get_or_create_category(category_name)
+        if category_info:
+            category_ids.append(category_info['id'])
+            category_link = category_info.get('link', '')
 
         # 글 작성
         title = article.get('seo_title') or article.get('title', '제목 없음')
@@ -318,13 +321,29 @@ class WordPressService:
                 if para.strip():
                     content_parts.append(f"<p>{para.strip()}</p>")
 
+        # 용어 설명 섹션
+        if article.get('seo_terminology'):
+            content_parts.append("<hr>")
+            content_parts.append("<h3>📚 용어 설명</h3>")
+            content_parts.append("<ul>")
+            for term in article['seo_terminology']:
+                content_parts.append(f"<li>{term}</li>")
+            content_parts.append("</ul>")
+
         # 키워드
         if article.get('seo_keywords'):
             content_parts.append(f"<p><em>키워드: {article['seo_keywords']}</em></p>")
 
+        # 하단 링크 섹션
+        content_parts.append("<hr>")
+
         # 원문 링크
         if article.get('url'):
             content_parts.append(f'<p><a href="{article["url"]}" target="_blank">원문 보기</a></p>')
+
+        # 카테고리 링크 (관련 기사 보기)
+        if category_link:
+            content_parts.append(f'<p><a href="{category_link}" style="display: inline-block; padding: 10px 20px; background-color: #0073aa; color: white; text-decoration: none; border-radius: 5px; font-weight: bold;">📰 관련 기사 보기</a></p>')
 
         content = '\n'.join(content_parts)
 

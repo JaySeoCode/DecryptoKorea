@@ -118,6 +118,7 @@ class GeminiService:
 3. 본문 요약 (300-500자, 문단 구분)
 4. 주요 키워드 5개 (쉼표로 구분)
 5. H2 헤딩 2-3개 제안
+6. 용어 설명: 기사에 사용된 암호화폐 관련 전문 용어 3-5개와 각 용어에 대한 간단한 설명 (각 용어당 50자 이내)
 
 응답 형식:
 제목: [여기에 제목]
@@ -130,6 +131,10 @@ class GeminiService:
 - [H2 헤딩 1]
 - [H2 헤딩 2]
 - [H2 헤딩 3]
+용어설명:
+- 용어1: 용어 설명
+- 용어2: 용어 설명
+- 용어3: 용어 설명
 """
 
             try:
@@ -168,7 +173,8 @@ class GeminiService:
             'meta_description': '',
             'body': '',
             'keywords': '',
-            'headings': []
+            'headings': [],
+            'terminology': []
         }
 
         current_section = None
@@ -187,9 +193,13 @@ class GeminiService:
                 current_section = 'body'
             elif line.startswith('헤딩:'):
                 current_section = 'headings'
+            elif line.startswith('용어설명:') or line.startswith('용어 설명:'):
+                current_section = 'terminology'
             elif line.startswith('-') and current_section == 'headings':
                 result['headings'].append(line.replace('-', '').strip())
-            elif current_section == 'body' and line and not line.startswith('키워드:') and not line.startswith('헤딩:'):
+            elif line.startswith('-') and current_section == 'terminology':
+                result['terminology'].append(line.replace('-', '').strip())
+            elif current_section == 'body' and line and not line.startswith('키워드:') and not line.startswith('헤딩:') and not line.startswith('용어'):
                 body_lines.append(line)
 
         result['body'] = '\n\n'.join(body_lines)
@@ -352,6 +362,7 @@ Create a modern, professional image suitable for a cryptocurrency news article. 
             'seo_body': seo_content['body'],
             'seo_keywords': seo_content['keywords'],
             'seo_headings': seo_content['headings'],
+            'seo_terminology': seo_content.get('terminology', []),
             'image_path': image_path,
             'image_prompt': self.generate_image_prompt(article)
         }
