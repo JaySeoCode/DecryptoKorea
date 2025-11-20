@@ -17,7 +17,7 @@
     }
   },
   "scheduler": {
-    "interval_minutes": 30,
+    "interval_minutes": 60,
     "enabled": true
   },
   "processing": {
